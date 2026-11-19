@@ -1,0 +1,263 @@
+<div class="innerHeading-wrap">
+    <div class="container">
+        <h1 *ngIf="languageId == 1">Lịch sử đặt món</h1>
+        <h1 *ngIf="languageId == 2">History Orders</h1>
+    </div>
+</div>
+
+<div class="main-profile">
+    <div class="container">
+        <!-- Month Picker & Action Toolbar -->
+        <div class="history-toolbar-card">
+            <div class="row align-items-center">
+                <!-- Left: Month / Year Stepper & Selector -->
+                <div class="col-12 col-md-7 col-lg-8 mb-3 mb-md-0">
+                    <div class="month-stepper-wrap">
+                        <button class="btn btn-step" (click)="prevMonth()" title="Previous Month">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        <div class="month-display-btn-wrap">
+                            <button class="btn btn-month-display" (click)="toggleMonthPicker()">
+                                <i class="far fa-calendar-alt text-warning mr-2"></i>
+                                <span class="current-month-text">{{showAllMonths ? (languageId == 1 ? 'Tất cả các tháng' : 'All Months') : (getCurrentMonthName() + ' ' + selectYear)}}</span>
+                                <i class="fas fa-caret-down ml-2 text-muted"></i>
+                            </button>
+
+                            <!-- Interactive Month & Year Grid Dropdown -->
+                            <div class="month-picker-dropdown" *ngIf="isMonthPickerOpen">
+                                <div class="picker-year-row">
+                                    <button class="btn btn-sm btn-year-step" (click)="changeYear(-1)">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <span class="picker-year-text">{{selectYear}}</span>
+                                    <button class="btn btn-sm btn-year-step" (click)="changeYear(1)">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+
+                                <div class="picker-months-grid">
+                                    <button *ngFor="let m of monthsList"
+                                        class="btn btn-month-cell"
+                                        [class.active]="month === m.id && !showAllMonths"
+                                        [class.current-cell]="m.id === currentRealMonth && selectYear === currentRealYear"
+                                        [class.has-orders]="hasOrdersInMonth(m.id, selectYear)"
+                                        (click)="selectMonth(m.id)">
+                                        <span>{{languageId == 1 ? m.name_vn : m.short_en}}</span>
+                                        <span class="dot-indicator" *ngIf="hasOrdersInMonth(m.id, selectYear)" title="Has orders"></span>
+                                    </button>
+                                </div>
+
+                                <div class="picker-footer d-flex justify-content-between align-items-center">
+                                    <button class="btn btn-sm btn-link text-primary p-0 font-weight-bold" (click)="goToCurrentMonth()">
+                                        <i class="far fa-dot-circle mr-1"></i>
+                                        {{languageId == 1 ? 'Tháng này' : 'This Month'}}
+                                    </button>
+                                    <button class="btn btn-sm btn-toggle-all" (click)="toggleShowAll()">
+                                        <i class="fas fa-list mr-1"></i>
+                                        {{showAllMonths ? (languageId == 1 ? 'Theo tháng' : 'Filter by Month') : (languageId == 1 ? 'Xem tất cả' : 'Show All')}}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-step" (click)="nextMonth()" title="Next Month">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+
+                        <button class="btn btn-all-toggle" [class.active]="showAllMonths" (click)="toggleShowAll()">
+                            {{showAllMonths ? (languageId == 1 ? 'Theo tháng' : 'Monthly View') : (languageId == 1 ? 'Tất cả' : 'All Months')}}
+                        </button>
+                    </div>
+
+                    <!-- Filter stats -->
+                    <div class="filter-stats-text mt-2" *ngIf="!isLoading">
+                        <span class="badge badge-stats mr-2">
+                            <i class="fas fa-calendar-week mr-1 text-primary"></i>
+                            {{filteredWeekList.length}} {{languageId == 1 ? 'tuần' : 'weeks'}}
+                        </span>
+                        <span class="badge badge-stats">
+                            <i class="fas fa-utensils mr-1 text-success"></i>
+                            {{getTotalMealsInView()}} {{languageId == 1 ? 'món ăn' : 'meals ordered'}}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Right: Export Excel Button -->
+                <div class="col-12 col-md-5 col-lg-4 text-md-right text-left">
+                    <button mat-raised-button class="btn-export-excel" (click)="export()">
+                        <i class="fas fa-file-excel mr-2"></i>
+                        <span *ngIf="languageId == 1">Xuất Excel (T{{month}}/{{selectYear}})</span>
+                        <span *ngIf="languageId == 2">Export Excel ({{month}}/{{selectYear}})</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <mat-spinner [diameter]="40" class="spinner-margin" *ngIf="isLoading"></mat-spinner>
+
+        <!-- Empty State -->
+        <div class="empty-history-card text-center" *ngIf="!isLoading && filteredWeekList.length === 0">
+            <div class="empty-icon-wrap">
+                <i class="far fa-calendar-times"></i>
+            </div>
+            <h3 class="empty-heading" *ngIf="languageId == 1">Không có đơn đặt món trong {{getCurrentMonthName()}} {{selectYear}}</h3>
+            <h3 class="empty-heading" *ngIf="languageId == 2">No Orders in {{getCurrentMonthName()}} {{selectYear}}</h3>
+            <p class="empty-desc" *ngIf="languageId == 1">
+                Bạn chưa đặt món nào trong tháng này. Hãy chọn tháng khác hoặc bấm "Xem tất cả các tháng".
+            </p>
+            <p class="empty-desc" *ngIf="languageId == 2">
+                You haven't ordered any meals in this month. Try selecting another month or click "Show All Months".
+            </p>
+            <div class="empty-actions">
+                <button mat-stroked-button class="btn-view-all" (click)="toggleShowAll()">
+                    <i class="fas fa-list mr-1"></i>
+                    {{languageId == 1 ? 'Xem tất cả lịch sử' : 'View All History'}}
+                </button>
+            </div>
+        </div>
+
+        <!-- Order Weeks Container -->
+        <div class="history-content-wrap" *ngIf="!isLoading && filteredWeekList.length > 0">
+            <!-- Loop through each week -->
+            <div class="week-card-entry" *ngFor="let week of filteredWeekList">
+                <!-- Week Header Bar -->
+                <div class="week-card-header">
+                    <div class="week-title-left">
+                        <i class="far fa-calendar-check mr-2 text-warning"></i>
+                        <span class="week-title-text" [innerHTML]="languageId == 1 ? week.title_vn : week.title_en"></span>
+                    </div>
+                    <span class="week-badge-count">
+                        {{week.days.length}} {{languageId == 1 ? 'ngày' : 'days'}}
+                    </span>
+                </div>
+
+                <!-- DESKTOP VIEW: Clean Modern Table (>= 992px) -->
+                <div class="desktop-table-wrap d-none d-lg-block">
+                    <table class="table modern-order-table">
+                        <thead>
+                            <tr>
+                                <th class="col-meal-label">{{languageId == 1 ? 'Bữa ăn' : 'Meal'}}</th>
+                                <th *ngFor="let day of week.days" [class.today-col]="day.isToday">
+                                    <div class="col-day-name">{{languageId == 1 ? day.title_vn : day.title_en}}</div>
+                                    <div class="today-tag" *ngIf="day.isToday">
+                                        <i class="fas fa-sun mr-1"></i> TODAY
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Breakfast row -->
+                            <tr *ngIf="week.days[0]?.breakfastId || week.days[0]?.breakfast">
+                                <td class="col-meal-label">
+                                    <span class="meal-pill-badge pill-breakfast">
+                                        <i class="fas fa-sun mr-1"></i>
+                                        {{languageId == 1 ? 'Món sáng' : 'Breakfast'}}
+                                    </span>
+                                </td>
+                                <td *ngFor="let day of week.days" [class.today-col]="day.isToday">
+                                    <span class="dish-name" *ngIf="day.breakfast">{{day.breakfast}}</span>
+                                    <span class="dish-empty" *ngIf="!day.breakfast">—</span>
+                                </td>
+                            </tr>
+
+                            <!-- Morning Snack row -->
+                            <tr *ngIf="week.days[0]?.breakfast_snackId || week.days[0]?.breakfast_snack">
+                                <td class="col-meal-label">
+                                    <span class="meal-pill-badge pill-snack">
+                                        <i class="fas fa-cookie mr-1"></i>
+                                        {{languageId == 1 ? 'Phụ sáng' : 'Morning Snack'}}
+                                    </span>
+                                </td>
+                                <td *ngFor="let day of week.days" [class.today-col]="day.isToday">
+                                    <span class="dish-name" *ngIf="day.breakfast_snack">{{day.breakfast_snack}}</span>
+                                    <span class="dish-empty" *ngIf="!day.breakfast_snack">—</span>
+                                </td>
+                            </tr>
+
+                            <!-- Lunch row -->
+                            <tr *ngIf="week.days[0]?.lunchId || week.days[0]?.lunch">
+                                <td class="col-meal-label">
+                                    <span class="meal-pill-badge pill-lunch">
+                                        <i class="fas fa-utensils mr-1"></i>
+                                        {{languageId == 1 ? 'Trưa' : 'Lunch'}}
+                                    </span>
+                                </td>
+                                <td *ngFor="let day of week.days" [class.today-col]="day.isToday">
+                                    <span class="dish-name" *ngIf="day.lunch">{{day.lunch}}</span>
+                                    <span class="dish-empty" *ngIf="!day.lunch">—</span>
+                                </td>
+                            </tr>
+
+                            <!-- Afternoon Snack row -->
+                            <tr *ngIf="week.days[0]?.lunch_snackId || week.days[0]?.lunch_snack">
+                                <td class="col-meal-label">
+                                    <span class="meal-pill-badge pill-snack-pm">
+                                        <i class="fas fa-cookie-bite mr-1"></i>
+                                        {{languageId == 1 ? 'Phụ chiều' : 'Afternoon Snack'}}
+                                    </span>
+                                </td>
+                                <td *ngFor="let day of week.days" [class.today-col]="day.isToday">
+                                    <span class="dish-name" *ngIf="day.lunch_snack">{{day.lunch_snack}}</span>
+                                    <span class="dish-empty" *ngIf="!day.lunch_snack">—</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- MOBILE & TABLET VIEW: Responsive Day Cards (< 992px) -->
+                <div class="mobile-cards-wrap d-block d-lg-none">
+                    <div class="row">
+                        <div class="col-12 col-md-6 mb-3" *ngFor="let day of week.days">
+                            <div class="mobile-day-card" [class.today-card]="day.isToday">
+                                <div class="day-card-header">
+                                    <div class="day-date-text">
+                                        <i class="far fa-calendar-alt mr-1 text-warning"></i>
+                                        {{languageId == 1 ? day.title_vn : day.title_en}}
+                                    </div>
+                                    <span class="today-tag-mobile" *ngIf="day.isToday">
+                                        <i class="fas fa-sun mr-1"></i> TODAY
+                                    </span>
+                                </div>
+                                <div class="day-card-body">
+                                    <div class="mobile-meal-row" *ngIf="day.breakfast">
+                                        <span class="meal-pill-badge pill-breakfast">
+                                            {{languageId == 1 ? 'Món sáng' : 'Breakfast'}}
+                                        </span>
+                                        <span class="mobile-dish-text">{{day.breakfast}}</span>
+                                    </div>
+
+                                    <div class="mobile-meal-row" *ngIf="day.breakfast_snack">
+                                        <span class="meal-pill-badge pill-snack">
+                                            {{languageId == 1 ? 'Phụ sáng' : 'Morning Snack'}}
+                                        </span>
+                                        <span class="mobile-dish-text">{{day.breakfast_snack}}</span>
+                                    </div>
+
+                                    <div class="mobile-meal-row" *ngIf="day.lunch">
+                                        <span class="meal-pill-badge pill-lunch">
+                                            {{languageId == 1 ? 'Trưa' : 'Lunch'}}
+                                        </span>
+                                        <span class="mobile-dish-text">{{day.lunch}}</span>
+                                    </div>
+
+                                    <div class="mobile-meal-row" *ngIf="day.lunch_snack">
+                                        <span class="meal-pill-badge pill-snack-pm">
+                                            {{languageId == 1 ? 'Phụ chiều' : 'Afternoon Snack'}}
+                                        </span>
+                                        <span class="mobile-dish-text">{{day.lunch_snack}}</span>
+                                    </div>
+
+                                    <div class="empty-day-notice" *ngIf="!day.breakfast && !day.breakfast_snack && !day.lunch && !day.lunch_snack">
+                                        <span class="text-muted font-italic">{{languageId == 1 ? 'Chưa chọn món cho ngày này' : 'No meals selected for this day'}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

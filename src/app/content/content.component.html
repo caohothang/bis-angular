@@ -1,0 +1,72 @@
+<div class="innerHeading-wrap">
+    <div class="container">
+        <h1 class="title text-center" *ngIf="languageId === 1">{{item.title_vn || item.title_en || 'Menu'}}</h1>
+        <h1 class="title text-center" *ngIf="languageId === 2">{{item.title_en || item.title_vn || 'Menu'}}</h1>
+    </div>
+</div>
+
+<div class="content-page-wrapper">
+    <div class="container">
+        <mat-spinner [diameter]="40" class="spinner-margin" *ngIf="isLoading"></mat-spinner>
+
+        <div class="page-container-card" *ngIf="!isLoading">
+            <!-- 1. For PDF Documents: Toolbar & Native Iframe Viewer -->
+            <ng-container *ngIf="isPdf && pdfUrl">
+                <div class="doc-toolbar">
+                    <div class="doc-info">
+                        <i class="fas fa-file-pdf text-danger mr-2"></i>
+                        <span class="doc-title">{{item.title_en || item.title_vn || 'PDF Menu'}}</span>
+                    </div>
+                    <div class="doc-actions">
+                        <a [href]="rawDocUrl" target="_blank" class="btn btn-sm btn-open-tab">
+                            <i class="fas fa-external-link-alt mr-1"></i>
+                            {{languageId === 1 ? 'Mở trong tab mới' : 'Open in New Tab'}}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="iframe-container">
+                    <iframe [src]="pdfUrl" class="doc-iframe" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </ng-container>
+
+            <!-- 2. For Office Documents (.xlsx, .docx): Document Card to PREVENT Auto-Download -->
+            <ng-container *ngIf="isOfficeDoc">
+                <div class="office-doc-card text-center">
+                    <div class="doc-icon-circle">
+                        <i class="fas fa-file-excel"></i>
+                    </div>
+                    <h3 class="doc-card-title">
+                        {{item.title_en || item.title_vn || 'Nutrition Menu Document'}}
+                    </h3>
+                    <p class="doc-card-sub">
+                        {{languageId === 1 ? 'Tài liệu thực đơn được lưu dưới định dạng bảng tính Excel' : 'The menu document is saved as a spreadsheet file'}}
+                        <code class="doc-filename-badge">{{docFileName}}</code>
+                    </p>
+
+                    <div class="doc-card-actions">
+                        <a *ngIf="rawDocUrl" [href]="rawDocUrl" target="_blank" class="btn btn-download-doc">
+                            <i class="fas fa-download mr-2"></i>
+                            {{languageId === 1 ? 'Tải file Excel về máy' : 'Download Excel File'}}
+                        </a>
+                        <a *ngIf="rawDocUrl && !rawDocUrl.includes('.test') && !rawDocUrl.includes('localhost')"
+                            [href]="'https://view.officeapps.live.com/op/view.aspx?src=' + rawDocUrl"
+                            target="_blank" class="btn btn-view-online">
+                            <i class="fas fa-eye mr-2"></i>
+                            {{languageId === 1 ? 'Xem trực tuyến (Office Online)' : 'View Online (Office Viewer)'}}
+                        </a>
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- 3. Standard HTML Content (if not handled by pdf or office card) -->
+            <div class="html-content-area" *ngIf="!isPdf && !isOfficeDoc && safeContent" [innerHtml]="safeContent"></div>
+
+            <!-- 4. Empty state -->
+            <div class="empty-content-box text-center" *ngIf="!isPdf && !isOfficeDoc && !safeContent">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <p>{{languageId === 1 ? 'Trang này hiện chưa có nội dung.' : 'No content available for this page.'}}</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,19 @@
+﻿<div class="">
+    <mat-sidenav-container autosize>
+        <!-- <mat-sidenav mode="side" opened>
+            <mat-nav-list *ngIf="languageId == 1" style="padding-top: 0">
+                <mat-list-item [routerLink]="['/profile/change-password']" routerLinkActive="active">Thay đổi mật khẩu</mat-list-item>
+                <mat-list-item [routerLink]="['/profile/lich-su-dat-mon']" routerLinkActive="active">Lịch sử đặt món</mat-list-item>
+                <mat-list-item [routerLink]="['/profile/lich-su-giao-dich']" routerLinkActive="active">Lịch sử giao dịch</mat-list-item>
+            </mat-nav-list>
+            <mat-nav-list *ngIf="languageId == 2" style="padding-top: 0">
+                <mat-list-item [routerLink]="['/profile/change-password']" routerLinkActive="active">Change password</mat-list-item>
+                <mat-list-item [routerLink]="['/profile/lich-su-dat-mon']" routerLinkActive="active">History orders</mat-list-item>
+                <mat-list-item [routerLink]="['/profile/lich-su-giao-dich']" routerLinkActive="active">History payments</mat-list-item>
+            </mat-nav-list>
+        </mat-sidenav> -->
+        <mat-sidenav-content>
+            <router-outlet></router-outlet>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>

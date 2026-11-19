@@ -1,0 +1,64 @@
+﻿<div class="innerHeading-wrap">
+    <div class="container">
+        <h1>Login</h1>
+    </div>
+</div>
+<!-- Inner Content Start -->
+<div class="innerContent-wrap">
+    <div class="container">
+        <!-- Logn Start -->
+        <div class="login-wrap">
+            <div class="contact-info login_box">
+                <!--<h3>New Customers</h3>
+                <p>If you don't have an account, please proceed by clicking the following button to continue first-time registration.</p>
+                <div class="form-group">
+                    <button type="submit" class="default-btn btn send_btn">Create Account <span></span></button>
+                </div>-->
+                <div class="contact-form loginWrp">
+                    <h3>Login</h3>
+
+                    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12">
+                                <div class="form-group">
+                                    <input formControlName="code" type="email" [ngClass]="{ 'is-invalid': submitted && f.code.errors }" name="code" class="form-control" placeholder="Code" />
+                                    <div *ngIf="submitted && f.code.errors" class="invalid-feedback">
+                                        <div *ngIf="f.code.errors.required">Code is not blank</div>
+                                        <!--                                        <div *ngIf="f.email.errors.email">Email is invalid</div>-->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12 col-md-12">
+                                <div class="form-group pass-form">
+                                    <input [type]="type" formControlName="password" [ngClass]="{ 'is-invalid': submitted && f.password.errors }" name="password" class="form-control password" placeholder="Password" />
+                                    <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
+                                        <div *ngIf="f.password.errors.required">Password is required</div>
+                                    </div>
+                                    <i class="fas fa-eye" *ngIf="type == 'text'" (click)="type = 'password';"></i>
+                                    <i class="fas fa-eye-slash" *ngIf="type == 'password'" (click)="type = 'text';"></i>
+
+
+                                </div>
+                            </div>
+                            <div class="col-lg-12 col-md-12">
+                                <div class="form-group">
+                                    <button [disabled]="loading" type="submit" class="default-btn btn send_btn">
+                                        Log in to my account <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                                    </button>
+                                </div>
+                                <div class="form-group">
+                                    <div class="forgot_password">
+                                        <!-- <a routerLink="../register" class="mr-2 text-info">Register</a> -->
+                                        <a routerLink="../forgot-password">Reset My Password</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Login End -->
+    </div>
+</div>
+<!-- Inner Content Start -->

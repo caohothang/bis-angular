@@ -1,0 +1,538 @@
+<div class="innerHeading-wrap">
+    <div class="container">
+        <h1 class="title text-center" *ngIf="languageId === 1">Chọn thực đơn</h1>
+        <h1 class="title text-center" *ngIf="languageId === 2">Pre-order Menu</h1>
+    </div>
+</div>
+
+<div class="menu-content">
+    <div class="container">
+        <div class="main_Ourmenu">
+            <!-- Modern Notification Banner -->
+            <div class="order-notice-banner">
+                <div class="notice-icon-box">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="notice-body">
+                    <span class="notice-tag" *ngIf="languageId === 1">Thông báo đặt món</span>
+                    <span class="notice-tag" *ngIf="languageId === 2">Important Notice</span>
+                    <p class="notice-message" *ngIf="languageId === 1">
+                        Vui lòng chọn và chỉnh sửa món từ ngày <strong>{{startDate}}</strong> đến
+                        <strong>{{config.to}}</strong> hàng tháng.
+                    </p>
+                    <p class="notice-message" *ngIf="languageId === 2">
+                        Please pre-order or change your selections from <strong>{{startDate}}</strong> to
+                        <strong>{{config.to}}</strong> monthly.
+                    </p>
+                </div>
+            </div>
+
+            <mat-spinner [diameter]="40" class="spinner-margin" *ngIf="isLoading"></mat-spinner>
+
+            <div class="tab-content" *ngIf="isOrder">
+                <div class="tab-pane fade show active">
+                    <div class="row">
+                        <!-- Left: Daily Menus -->
+                        <div class="col-12 col-md-7 col-lg-8 col-xl-9 left_cntbar px-2">
+                            <!-- Empty Week / No Menu Data State -->
+                            <div class="no-menu-card text-center"
+                                *ngIf="hasNoMenuData || (weeks.length === 0 && !isLoading)">
+                                <div class="no-menu-icon-wrap">
+                                    <i class="fas fa-calendar-times"></i>
+                                </div>
+                                <h3 class="no-menu-heading" *ngIf="languageId == 1">Tuần {{weekNumber}} chưa có dữ liệu
+                                    thực đơn</h3>
+                                <h3 class="no-menu-heading" *ngIf="languageId == 2">Week {{weekNumber}} Menu Not
+                                    Available</h3>
+                                <p class="no-menu-desc" *ngIf="languageId == 1">
+                                    Tuần {{weekNumber}} chưa có dữ liệu thực đơn, vui lòng liên hệ canteen.
+                                </p>
+                                <p class="no-menu-desc" *ngIf="languageId == 2">
+                                    Week {{weekNumber}} has no menu data available. Please contact the canteen.
+                                </p>
+                                <div class="canteen-contact-badge">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <span *ngIf="languageId == 1">Vui lòng liên hệ bộ phận Canteen để được hỗ
+                                        trợ.</span>
+                                    <span *ngIf="languageId == 2">Please contact the canteen for assistance.</span>
+                                </div>
+                            </div>
+
+                            <div *ngFor="let day of weeks">
+                                <div class="days" *ngIf="compareDate(day)">
+                                    <ng-container>
+                                        <!-- Day Header -->
+                                        <div class="date-order-header">
+                                            <div class="date-title">
+                                                <i class="far fa-calendar-check mr-2"></i>
+                                                <span *ngIf="languageId == 1">{{day.title_vn}}</span>
+                                                <span *ngIf="languageId == 2">{{day.title_en}}</span>
+                                            </div>
+                                            <span class="date-badge" *ngIf="languageId == 1">Thực đơn trong ngày</span>
+                                            <span class="date-badge" *ngIf="languageId == 2">Daily Meals</span>
+                                        </div>
+
+                                        <!-- Vacation state -->
+                                        <div class="vacation-banner"
+                                            *ngIf="day.breakfast_items.length == 0 && day.lunch_items.length == 0">
+                                            <i class="fas fa-umbrella-beach mr-2"></i>
+                                            <b *ngIf="languageId == 1">Nghỉ theo lịch nhà trường</b>
+                                            <b *ngIf="languageId == 2">Vacation according to school schedule</b>
+                                        </div>
+
+                                        <div class="pizza_items">
+                                            <!-- Breakfast Section -->
+                                            <div class="item-per-day"
+                                                *ngIf="day.breakfast_items.length > 0 && user.breakfast">
+                                                <div class="meal-sec-header">
+                                                    <span class="meal-type-pill pill-breakfast">
+                                                        <i class="fas fa-sun mr-1"></i>
+                                                        <span *ngIf="languageId == 1">{{day.breakfast_title_vn}}</span>
+                                                        <span *ngIf="languageId == 2">{{day.breakfast_title_en}}</span>
+                                                    </span>
+                                                    <span class="meal-count-hint">{{day.breakfast_items.length}}
+                                                        {{languageId == 1 ? 'món ăn' : 'items'}}</span>
+                                                </div>
+                                                <div class="row">
+                                                    <div *ngFor="let item of day.breakfast_items"
+                                                        class="col-lg-6 col-xl-4 col-md-12 col-sm-6 col-xs-12 all-items px-2">
+                                                        <div class="P_itmesbox" [class.selected-box]="item.selected">
+                                                            <div class="selected-ribbon" *ngIf="item.selected">
+                                                                <i class="fas fa-check"></i>
+                                                            </div>
+                                                            <div class="PT_image" (click)="showImage(item);">
+                                                                <img matTooltip="{{showInforImage}}"
+                                                                    src="{{item.image}}" class="absoImg" alt="">
+                                                                <div class="img-zoom-overlay">
+                                                                    <i class="fas fa-search-plus"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div class="PT_dscr" *ngIf="languageId == 1">
+                                                                <h3 class="PT_title" title="{{item.title_vn}}">
+                                                                    {{item.title_vn}}</h3>
+                                                                <p class="PT_dtls" [innerHTML]="item.description_vn">
+                                                                </p>
+                                                                <div class="price_block">
+                                                                    <a mat-stroked-button class="card_btn"
+                                                                        [disabled]="isSaving"
+                                                                        [class.active]="item.selected"
+                                                                        (click)="selectItem(item, day.breakfast_items, day, 'breakfast')">
+                                                                        <i class="fas fa-check-circle mr-1"
+                                                                            *ngIf="item.selected"></i>
+                                                                        <i class="far fa-circle mr-1"
+                                                                            *ngIf="!item.selected"></i>
+                                                                        {{item.selected ? 'Đã chọn': 'Chọn món'}}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="PT_dscr" *ngIf="languageId == 2">
+                                                                <h3 class="PT_title" title="{{item.title_en}}">
+                                                                    {{item.title_en}}</h3>
+                                                                <p class="PT_dtls" [innerHTML]="item.description_en">
+                                                                </p>
+                                                                <div class="price_block">
+                                                                    <a mat-stroked-button class="card_btn"
+                                                                        [disabled]="isSaving"
+                                                                        [class.active]="item.selected"
+                                                                        (click)="selectItem(item, day.breakfast_items, day, 'breakfast')">
+                                                                        <i class="fas fa-check-circle mr-1"
+                                                                            *ngIf="item.selected"></i>
+                                                                        <i class="far fa-circle mr-1"
+                                                                            *ngIf="!item.selected"></i>
+                                                                        {{item.selected ? 'Selected': 'Select'}}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Morning Snack Section -->
+                                            <div class="item-per-day"
+                                                *ngIf="day.snack_breakfast_items.length > 0 && user.breakfast">
+                                                <div class="meal-sec-header">
+                                                    <span class="meal-type-pill pill-snack">
+                                                        <i class="fas fa-cookie-bite mr-1"></i>
+                                                        <span
+                                                            *ngIf="languageId == 1">{{day.snack_breakfast_title_vn}}</span>
+                                                        <span
+                                                            *ngIf="languageId == 2">{{day.snack_breakfast_title_en}}</span>
+                                                    </span>
+                                                    <span class="meal-count-hint">{{day.snack_breakfast_items.length}}
+                                                        {{languageId == 1 ? 'món ăn' : 'items'}}</span>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-lg-6 col-xl-4 col-md-12 col-sm-6 col-xs-12 all-items px-2"
+                                                        *ngFor="let item of day.snack_breakfast_items">
+                                                        <div class="P_itmesbox" [class.selected-box]="item.selected">
+                                                            <div class="selected-ribbon" *ngIf="item.selected">
+                                                                <i class="fas fa-check"></i>
+                                                            </div>
+                                                            <div class="PT_image" (click)="showImage(item);">
+                                                                <img matTooltip="{{showInforImage}}"
+                                                                    src="{{item.image}}" class="absoImg" alt="">
+                                                                <div class="img-zoom-overlay">
+                                                                    <i class="fas fa-search-plus"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div class="PT_dscr" *ngIf="languageId == 1">
+                                                                <h3 class="PT_title" title="{{item.title_vn}}">
+                                                                    {{item.title_vn}}</h3>
+                                                                <p class="PT_dtls" [innerHTML]="item.description_vn">
+                                                                </p>
+                                                                <div class="price_block">
+                                                                    <a mat-stroked-button class="card_btn"
+                                                                        [disabled]="isSaving"
+                                                                        [class.active]="item.selected"
+                                                                        (click)="selectSnack(item, day.snack_breakfast_items, day, 'snack_breakfast')">
+                                                                        <i class="fas fa-check-circle mr-1"
+                                                                            *ngIf="item.selected"></i>
+                                                                        <i class="far fa-circle mr-1"
+                                                                            *ngIf="!item.selected"></i>
+                                                                        {{item.selected ? 'Đã chọn': 'Chọn món'}}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="PT_dscr" *ngIf="languageId == 2">
+                                                                <h3 class="PT_title" title="{{item.title_en}}">
+                                                                    {{item.title_en}}</h3>
+                                                                <p class="PT_dtls" [innerHTML]="item.description_en">
+                                                                </p>
+                                                                <div class="price_block">
+                                                                    <a mat-stroked-button class="card_btn"
+                                                                        [disabled]="isSaving"
+                                                                        [class.active]="item.selected"
+                                                                        (click)="selectSnack(item, day.snack_breakfast_items, day, 'snack_breakfast')">
+                                                                        <i class="fas fa-check-circle mr-1"
+                                                                            *ngIf="item.selected"></i>
+                                                                        <i class="far fa-circle mr-1"
+                                                                            *ngIf="!item.selected"></i>
+                                                                        {{item.selected ? 'Selected': 'Select'}}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Lunch Section -->
+                                            <div class="item-per-day" *ngIf="day.lunch_items.length > 0 && user.lunch">
+                                                <div class="meal-sec-header">
+                                                    <span class="meal-type-pill pill-lunch">
+                                                        <i class="fas fa-utensils mr-1"></i>
+                                                        <span *ngIf="languageId == 1">{{day.lunch_title_vn}}</span>
+                                                        <span *ngIf="languageId == 2">{{day.lunch_title_en}}</span>
+                                                    </span>
+                                                    <span class="meal-count-hint">{{day.lunch_items.length}}
+                                                        {{languageId == 1 ? 'món ăn' : 'items'}}</span>
+                                                </div>
+
+                                                <!-- Lunch Set Note Banner -->
+                                                <div class="lunch-set-callout" *ngFor="let note of day.lunch_notes">
+                                                    <div class="callout-icon">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </div>
+                                                    <div class="callout-content">
+                                                        <span class="callout-tag" *ngIf="languageId == 1">Ghi chú set
+                                                            cơm:</span>
+                                                        <span class="callout-tag" *ngIf="languageId == 2">Set Lunch
+                                                            Note:</span>
+                                                        <span class="callout-text">{{note}}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div *ngFor="let item of day.lunch_items"
+                                                        class="col-lg-6 col-xl-4 col-md-12 col-sm-6 col-xs-12 all-items px-2">
+                                                        <div class="P_itmesbox" [class.selected-box]="item.selected">
+                                                            <div class="selected-ribbon" *ngIf="item.selected">
+                                                                <i class="fas fa-check"></i>
+                                                            </div>
+                                                            <div class="PT_image" (click)="showImage(item);">
+                                                                <img matTooltip="{{showInforImage}}"
+                                                                    src="{{item.image}}" class="absoImg" alt="">
+                                                                <div class="img-zoom-overlay">
+                                                                    <i class="fas fa-search-plus"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div class="PT_dscr" *ngIf="languageId == 1">
+                                                                <h3 class="PT_title" title="{{item.title_vn}}">
+                                                                    {{item.title_vn}}</h3>
+                                                                <p class="PT_dtls" [innerHTML]="item.description_vn">
+                                                                </p>
+                                                                <div class="price_block">
+                                                                    <a mat-stroked-button class="card_btn"
+                                                                        [disabled]="isSaving"
+                                                                        [class.active]="item.selected"
+                                                                        (click)="selectItem(item, day.lunch_items, day, 'lunch')">
+                                                                        <i class="fas fa-check-circle mr-1"
+                                                                            *ngIf="item.selected"></i>
+                                                                        <i class="far fa-circle mr-1"
+                                                                            *ngIf="!item.selected"></i>
+                                                                        {{item.selected ? 'Đã chọn': 'Chọn món'}}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="PT_dscr" *ngIf="languageId == 2">
+                                                                <h3 class="PT_title" title="{{item.title_en}}">
+                                                                    {{item.title_en}}</h3>
+                                                                <p class="PT_dtls" [innerHTML]="item.description_en">
+                                                                </p>
+                                                                <div class="price_block">
+                                                                    <a mat-stroked-button class="card_btn"
+                                                                        [disabled]="isSaving"
+                                                                        [class.active]="item.selected"
+                                                                        (click)="selectItem(item, day.lunch_items, day, 'lunch')">
+                                                                        <i class="fas fa-check-circle mr-1"
+                                                                            *ngIf="item.selected"></i>
+                                                                        <i class="far fa-circle mr-1"
+                                                                            *ngIf="!item.selected"></i>
+                                                                        {{item.selected ? 'Selected': 'Select'}}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Afternoon Snack Section -->
+                                            <div class="item-per-day"
+                                                *ngIf="day.lunch_snack_items.length > 0 && user.lunch">
+                                                <div class="meal-sec-header">
+                                                    <span class="meal-type-pill pill-snack-pm">
+                                                        <i class="fas fa-apple-alt mr-1"></i>
+                                                        <span
+                                                            *ngIf="languageId == 1">{{day.snack_lunch_title_vn}}</span>
+                                                        <span
+                                                            *ngIf="languageId == 2">{{day.snack_lunch_title_en}}</span>
+                                                    </span>
+                                                    <span class="meal-count-hint">{{day.lunch_snack_items.length}}
+                                                        {{languageId == 1 ? 'món ăn' : 'items'}}</span>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-lg-6 col-xl-4 col-md-12 col-sm-6 col-xs-12 all-items px-2"
+                                                        *ngFor="let item of day.lunch_snack_items">
+                                                        <div class="P_itmesbox" [class.selected-box]="item.selected">
+                                                            <div class="selected-ribbon" *ngIf="item.selected">
+                                                                <i class="fas fa-check"></i>
+                                                            </div>
+                                                            <div class="PT_image" (click)="showImage(item);">
+                                                                <img matTooltip="{{showInforImage}}"
+                                                                    src="{{item.image}}" class="absoImg" alt="">
+                                                                <div class="img-zoom-overlay">
+                                                                    <i class="fas fa-search-plus"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div class="PT_dscr" *ngIf="languageId == 1">
+                                                                <h3 class="PT_title" title="{{item.title_vn}}">
+                                                                    {{item.title_vn}}</h3>
+                                                                <p class="PT_dtls" [innerHTML]="item.description_vn">
+                                                                </p>
+                                                                <div class="price_block">
+                                                                    <a mat-stroked-button class="card_btn"
+                                                                        [disabled]="isSaving"
+                                                                        [class.active]="item.selected"
+                                                                        (click)="selectSnack(item, day.lunch_snack_items, day, 'lunch_breakfast')">
+                                                                        <i class="fas fa-check-circle mr-1"
+                                                                            *ngIf="item.selected"></i>
+                                                                        <i class="far fa-circle mr-1"
+                                                                            *ngIf="!item.selected"></i>
+                                                                        {{item.selected ? 'Đã chọn': 'Chọn món'}}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div class="PT_dscr" *ngIf="languageId == 2">
+                                                                <h3 class="PT_title" title="{{item.title_en}}">
+                                                                    {{item.title_en}}</h3>
+                                                                <p class="PT_dtls" [innerHTML]="item.description_en">
+                                                                </p>
+                                                                <div class="price_block">
+                                                                    <a mat-stroked-button class="card_btn"
+                                                                        [disabled]="isSaving"
+                                                                        [class.active]="item.selected"
+                                                                        (click)="selectSnack(item, day.lunch_snack_items, day, 'lunch_breakfast')">
+                                                                        <i class="fas fa-check-circle mr-1"
+                                                                            *ngIf="item.selected"></i>
+                                                                        <i class="far fa-circle mr-1"
+                                                                            *ngIf="!item.selected"></i>
+                                                                        {{item.selected ? 'Selected': 'Select'}}
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </ng-container>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Order Summary Sidebar -->
+                        <div class="col-12 col-xl-3 col-lg-4 col-md-5 px-2">
+                            <div class="your_order">
+                                <div class="order_title">
+                                    <div class="dropdown week-dropdown-wrap">
+                                        <button type="button" class="btn btn-week-dropdown dropdown-toggle"
+                                            id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                            aria-expanded="false">
+                                            <span class="week-dropdown-label">
+                                                <i class="far fa-calendar-alt mr-2 text-warning"></i>
+                                                <span *ngIf="languageId == 1">{{weekSelected?.title_vn}}</span>
+                                                <span *ngIf="languageId == 2">{{weekSelected?.title_en}}</span>
+                                            </span>
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            <a class="dropdown-item" (click)="changeWeek(week, i)"
+                                                *ngFor="let week of weekList; let i = index"
+                                                [class.active]="week.weekNumber === weekSelected?.weekNumber">
+                                                <i class="fas fa-check mr-2"
+                                                    *ngIf="week.weekNumber === weekSelected?.weekNumber"></i>
+                                                <span *ngIf="languageId == 1">{{week.title_vn}}</span>
+                                                <span *ngIf="languageId == 2">{{week.title_en}}</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="Order_number">
+                                    <ul class="order-list-wrap">
+                                        <li *ngIf="weekSelected?.itemSelected && weekSelected?.itemSelected.length == 0"
+                                            class="empty-state text-center">
+                                            <div class="empty-state-icon">
+                                                <i class="fas fa-utensils"></i>
+                                            </div>
+                                            <b class="empty-title" *ngIf="languageId == 1">Chưa chọn món nào</b>
+                                            <b class="empty-title" *ngIf="languageId == 2">No meals selected</b>
+                                            <p class="empty-sub" *ngIf="languageId == 1">Vui lòng bấm "Chọn món" ở danh
+                                                sách bên trái</p>
+                                            <p class="empty-sub" *ngIf="languageId == 2">Please click "Select" on the
+                                                meals on the left</p>
+                                        </li>
+                                        <li *ngFor="let item of weekSelected?.itemSelected" class="order-day-entry">
+                                            <div class="order-day-title">
+                                                <i class="far fa-calendar-check mr-2"></i>
+                                                <span *ngIf="languageId == 1">{{item.title_vn}}</span>
+                                                <span *ngIf="languageId == 2">{{item.title_en}}</span>
+                                            </div>
+                                            <div class="order-day-items" *ngIf="languageId == 1">
+                                                <div class="order-meal-badge-row" *ngIf="item.breakfast">
+                                                    <span
+                                                        class="meal-tag tag-breakfast">{{item.breakfast_title_vn}}</span>
+                                                    <span class="meal-name-text">{{item.breakfast?.title_vn}}</span>
+                                                </div>
+                                                <div class="order-meal-badge-row"
+                                                    *ngIf="item.snack_breakfast?.title_vn">
+                                                    <span
+                                                        class="meal-tag tag-snack">{{item.snack_breakfast_title_vn}}</span>
+                                                    <span
+                                                        class="meal-name-text">{{item.snack_breakfast?.title_vn}}</span>
+                                                </div>
+                                                <div class="order-meal-badge-row" *ngIf="item.lunch">
+                                                    <span class="meal-tag tag-lunch">{{item.lunch_title_vn}}</span>
+                                                    <span class="meal-name-text">{{item.lunch?.title_vn}}</span>
+                                                </div>
+                                                <div class="order-meal-badge-row" *ngIf="item.lunch_snack?.title_vn">
+                                                    <span
+                                                        class="meal-tag tag-snack-pm">{{item.snack_lunch_title_vn}}</span>
+                                                    <span class="meal-name-text">{{item.lunch_snack?.title_vn}}</span>
+                                                </div>
+                                            </div>
+                                            <div class="order-day-items" *ngIf="languageId == 2">
+                                                <div class="order-meal-badge-row" *ngIf="item.breakfast">
+                                                    <span
+                                                        class="meal-tag tag-breakfast">{{item.breakfast_title_en}}</span>
+                                                    <span class="meal-name-text">{{item.breakfast?.title_en}}</span>
+                                                </div>
+                                                <div class="order-meal-badge-row"
+                                                    *ngIf="item.snack_breakfast?.title_en">
+                                                    <span
+                                                        class="meal-tag tag-snack">{{item.snack_breakfast_title_en}}</span>
+                                                    <span
+                                                        class="meal-name-text">{{item.snack_breakfast?.title_en}}</span>
+                                                </div>
+                                                <div class="order-meal-badge-row" *ngIf="item.lunch">
+                                                    <span class="meal-tag tag-lunch">{{item.lunch_title_en}}</span>
+                                                    <span class="meal-name-text">{{item.lunch?.title_en}}</span>
+                                                </div>
+                                                <div class="order-meal-badge-row" *ngIf="item.lunch_snack?.title_en">
+                                                    <span
+                                                        class="meal-tag tag-snack-pm">{{item.snack_lunch_title_en}}</span>
+                                                    <span class="meal-name-text">{{item.lunch_snack?.title_en}}</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="totle_Oamount">
+                                    <!-- State 1: More weeks available -> Next Week -->
+                                    <button mat-raised-button [disabled]="isSaving" class="btn-order-cta"
+                                        *ngIf="!isNextWeekDisabled() && !isDoneOrder" (click)="nextWeek();">
+                                        <span *ngIf="languageId == 1">Tuần tiếp theo <i
+                                                class="fas fa-chevron-right ml-2"></i></span>
+                                        <span *ngIf="languageId == 2">Next week <i
+                                                class="fas fa-chevron-right ml-2"></i></span>
+                                    </button>
+
+                                    <!-- State 2: At final week of config & not done yet -> Complete Pre-Order -->
+                                    <button mat-raised-button [disabled]="isSaving"
+                                        class="btn-order-cta btn-complete-cta"
+                                        *ngIf="isNextWeekDisabled() && !isDoneOrder" (click)="completeLastWeekOrder();">
+                                        <i class="fas fa-check-circle mr-2"></i>
+                                        <span *ngIf="languageId == 1">Hoàn thành đặt món</span>
+                                        <span *ngIf="languageId == 2">Complete Pre-Order</span>
+                                    </button>
+
+                                    <!-- State 3: Done order / already completed -> View Order History -->
+                                    <button mat-raised-button [disabled]="isSaving" class="btn-order-cta btn-done-cta"
+                                        *ngIf="isDoneOrder" (click)="goDashboard();">
+                                        <i class="fas fa-history mr-2"></i>
+                                        <span *ngIf="languageId == 1">Xem lịch sử đặt món</span>
+                                        <span *ngIf="languageId == 2">Order history</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Complete Confirmation Dialog -->
+<ng-template #confirmOrderDialog>
+    <div class="order-complete-modal-dialog">
+        <div class="complete-modal-icon-wrap">
+            <div class="complete-icon-circle">
+                <i class="fas fa-check"></i>
+            </div>
+        </div>
+        <h2 class="complete-modal-title" *ngIf="languageId == 1">Hoàn thành đặt món!</h2>
+        <h2 class="complete-modal-title" *ngIf="languageId == 2">Pre-Order Completed!</h2>
+        <p class="complete-modal-desc" *ngIf="languageId == 1">
+            Bạn đã hoàn tất chọn món đến ngày kết thúc theo cấu hình ({{config?.endDateOrder || endDate}}).
+        </p>
+        <p class="complete-modal-desc" *ngIf="languageId == 2">
+            Your meal selections have been successfully completed up to the configured end date ({{config?.endDateOrder
+            || endDate}}).
+        </p>
+        <div class="complete-modal-prompt">
+            <i class="fas fa-question-circle mr-2 text-primary"></i>
+            <span *ngIf="languageId == 1">Bạn có muốn xem lại lịch sử các tuần đã đặt không?</span>
+            <span *ngIf="languageId == 2">Would you like to view your order history?</span>
+        </div>
+        <div class="complete-modal-actions">
+            <button mat-stroked-button class="btn-modal-stay" (click)="closeOrderCompleteModal()">
+                {{languageId == 1 ? 'Ở lại đây' : 'Stay Here'}}
+            </button>
+            <button mat-raised-button class="btn-modal-history" (click)="confirmGoHistory()">
+                <i class="fas fa-history mr-1"></i>
+                {{languageId == 1 ? 'Xem lịch sử đặt món' : 'View Order History'}}
+            </button>
+        </div>
+    </div>
+</ng-template>

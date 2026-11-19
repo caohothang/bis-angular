@@ -1,0 +1,92 @@
+<!--Header Start-->
+<div class="header-wrap no-print">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-2 col-md-12 navbar-light flex flex-row align-center">
+                <div class="logo">
+                    <a href="/"><img alt="" class="logo-default" src="/assets/images/logo.png"></a>
+                </div>
+                <div *ngIf="accountValue?.token" class="loginwrp hide-desktop"><a routerLink="/menu">Pre-order</a></div>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"> <span class="navbar-toggler-icon"></span> </button>
+            </div>
+            <div class="col-lg-6 col-md-12">
+                <div class="navigation-wrap" id="filters">
+                    <nav class="navbar navbar-expand-lg navbar-light"> <a class="navbar-brand" routerLink="/page/menu">Menu</a>
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <button class="close-toggler" type="button" data-toggle="offcanvas"> <span><i class="fas fa-times-circle" aria-hidden="true"></i></span> </button>
+                            <ul class="navbar-nav mr-auto">
+                                <li class="nav-item"> <a class="nav-link" routerLinkActive="active" [routerLink]="['/profile/lich-su-dat-mon']">History orders </a> </li>
+                                <li class="nav-item"> <a class="nav-link" routerLinkActive="active" [routerLink]="['/profile/lich-su-giao-dich']">History payments </a> </li>
+                                <!-- <li class="nav-item"><a class="nav-link" >Our Services</a> <i class="fas fa-caret-down"></i>
+                                    <ul class="submenu">
+                                        <li><a href="blog.html">School Canteen</a></li>
+                                        <li><a href="blog-grid.html">Blog Grid Sidebar</a></li>
+                                        <li><a href="blog-list.html">Blog List sidebar</a></li>
+                                        <li><a href="blog-details.html">Blog Details</a></li>
+                                    </ul>
+                                </li> -->
+                                <!-- <li class="nav-item"> <a class="nav-link active" routerLink="/">Our Client <span class="sr-only">(current)</span></a> </li> -->
+                                <li class="nav-item"> <a class="nav-link" routerLinkActive="active" [routerLink]="['/page/menu']">Menu</a> </li>
+                                <li class="nav-item"><a class="nav-link" routerLinkActive="active" routerLink="/contact">Contact Us</a></li>
+                                <li *ngIf="accountValue && accountValue.user && languageId == 1" class="nav-item hide-desktop"><a class="nav-link">Chào bạn, {{accountValue.user.displayName | lastName}}</a> <i class="fas fa-caret-down"></i>
+                                    <ul class="submenu">
+                                        <li><a [routerLink]="['/profile/change-password']">Thay đổi mật khẩu</a></li>
+                                        <li><a [routerLink]="['/profile/lich-su-dat-mon']">Lịch sử đặt món</a></li>
+                                        <li><a [routerLink]="['/profile/lich-su-giao-dich']">Lịch sử giao dịch</a></li>
+                                        <li><a (click)="logout()">Đăng xuất</a></li>
+                                    </ul>
+                                </li>
+                                <li *ngIf="accountValue && accountValue.user && languageId == 2" class="nav-item hide-desktop"><a class="nav-link">Hi, {{accountValue.user.displayName | lastName}}</a> <i class="fas fa-caret-down"></i>
+                                    <ul class="submenu">
+                                        <li><a [routerLink]="['/profile/change-password']">Change password</a></li>
+                                        <li><a [routerLink]="['/profile/lich-su-dat-mon']">History orders</a></li>
+                                        <li><a [routerLink]="['/profile/lich-su-giao-dich']">History payments</a></li>
+                                        <li><a (click)="logout()">Sign out</a></li>
+                                    </ul>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+
+            </div>
+            <div class="col-lg-4 hide-mobile ">
+                <div class="header_info flex flex-row align-center text-right">
+                    <!-- <div class="search"><a href="#"><i class="fas fa-search"></i></a></div> -->
+                    <!-- <div *ngIf="!accountValue?.token" class="loginwrp flex-100"><a routerLink="account/login">Login</a></div> -->
+
+                    <ul *ngIf="accountValue?.token && languageId == 1" class="navbar-nav mr-auto text-right login-user">
+                        <li class="nav-item">
+                            <a href="javascript:void(0)">Chào bạn, {{accountValue.user.displayName}}</a>
+                            <ul class="submenu text-left">
+                                <li><a [routerLink]="['/profile/change-password']">Thay đổi mật khẩu</a></li>
+                                <li><a [routerLink]="['/profile/lich-su-dat-mon']">Lịch sử đặt món</a></li>
+                                <li><a [routerLink]="['/profile/lich-su-giao-dich']">Lịch sử giao dịch</a></li>
+                                <li><a (click)="logout()">Đăng xuất</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul *ngIf="accountValue?.token && languageId == 2" class="navbar-nav mr-auto text-right login-user">
+                        <li class="nav-item">
+                            <a href="javascript:void(0)">Hi, {{accountValue.user.displayName}}</a>
+                            <ul class="submenu text-left">
+                                <li><a [routerLink]="['/profile/change-password']">Change password</a></li>
+                                <li><a [routerLink]="['/profile/lich-su-dat-mon']">History orders</a></li>
+                                <li><a [routerLink]="['/profile/lich-su-giao-dich']">History payments</a></li>
+                                <li><a (click)="logout()">Sign out</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <div *ngIf="accountValue?.token && languageId == 2 && !isAllowed()" class="loginwrp"><a routerLink="/menu">Pre-order</a></div>
+                    <div *ngIf="accountValue?.token && languageId == 1 && !isAllowed()" class="loginwrp"><a routerLink="/menu">Đặt món</a></div>
+                    <div *ngIf="accountValue?.token && languageId == 2 && isAllowed()" class="loginwrp"><a routerLink="/drink">Payment</a></div>
+                    <div *ngIf="accountValue?.token && languageId == 1 && isAllowed()" class="loginwrp"><a routerLink="/drink">Thanh toán</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Header End-->

@@ -1,0 +1,10 @@
+{
+    "/api": {
+        "target": "http://bis.test/api",
+        "secure": false,
+        "pathRewrite": {
+            "^/api": ""
+        },
+        "changeOrigin": true
+    }
+}

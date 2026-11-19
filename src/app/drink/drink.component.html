@@ -1,0 +1,92 @@
+﻿<div class="innerHeading-wrap no-print">
+    <div class="container">
+        <h1 class="title text-center" *ngIf="languageId === 1">Hệ thống thanh toán</h1>
+        <h1 class="title text-center" *ngIf="languageId === 2">Payment System</h1>
+    </div>
+</div>
+<div class="no-print contaier-drink">
+    <div class="page">
+        <div class="flex flex-row align-center">
+            <button *ngFor="let item of items" (click)="itemSelected = item;" [ngClass]="{'active': itemSelected.id == item.id}" class="new-bt mg-r-10">{{item.title}}</button>
+        </div>
+        <div class="drinks">
+            <div class="row">
+                <div class="col-lg-9  bd-r">
+                    <span *ngFor="let item of itemSelected.items" (click)="onAddItem(item)" class="book-bt">{{item.title_vn}}</span>
+                </div>
+                <div class="col-lg-3">
+                    <div class="item-selected">
+                        <div class="item-header text-center">
+                            Danh sách món đã chọn
+                        </div>
+                        <div class="items" *ngIf="drinks.length > 0">
+                            <div class="flex flex-column">
+                                <div class="item-booked" *ngFor="let item of drinks; let i = index">
+                                    <div *ngIf="!item.isEdit">
+                                        <div>{{item.title_vn}} x {{item.quantity}}</div>
+                                        <div>{{onConvertPrice(item.price * item.quantity)}} VNĐ</div>
+                                        <div class="actions">
+                                            <i title="Chỉnh sửa" (click)="onEdit(item)" class="fas fa-edit"></i>
+                                            <i title="Xóa" (click)="onDelete(i)" class="fa fa-trash"></i>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="item.isEdit">
+                                        <div>{{item.title_vn}} x {{item.quantity}}</div>
+                                        <div>{{onConvertPrice(item.price * item.quantity)}} VNĐ</div>
+                                        <div class="edit-quantity">
+                                            <input type="text" class="form-control " debounce [delay]="1000" (func)="onUpdate(item)" [(ngModel)]="item.quantity">
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="total-price">
+                                Total: {{onConvertPrice(total)}} VNĐ
+                            </div>
+
+                        </div>
+                        <div class="items" *ngIf="drinks.length == 0">
+                            <div class="no-select">Vui lòng chọn món</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="payment flex flex-row" *ngIf="accountValue?.user?.groupId == 11">
+            <input id="barcode-input" type="text" class="form-control" debounce [delay]="1000" (func)="onGetInforUserTopup()" placeholder="Scan barcode tại đây" [(ngModel)]="codeTopup">
+            <input type="text" class="form-control mg-l-20" [disabled]="true" [(ngModel)]="userTopup.displayName" placeholder="Tên khách hàng">
+            <input type="text" class="form-control mg-l-20" [disabled]="true" [(ngModel)]="userTopup.topup" placeholder="Số dư">
+            <input type="text" class="form-control mg-l-20" [(ngModel)]="userTopup.money" (change)="onFormatNumber(userTopup)" placeholder="Số tiền nạp">
+            <button (click)="onUpdateTopup()" [disabled]="isSaving || !userTopup.money || !codeTopup" class="payment-bt">Nạp tiền</button>
+        </div>
+        <div *ngIf="!isOrderCanteen" class="payment flex flex-row">
+            <input id="barcode-input" type="text" class="form-control" debounce [delay]="1000" (func)="onGetInfoUser()" placeholder="Scan barcode tại đây" [(ngModel)]="code">
+            <select class="form-control mg-l-20" [(ngModel)]="loaiThanhToan">
+                <option value="0">Hệ thống</option>
+                <option value="1">TM/CK</option>
+            </select>
+            <input type="text" class="form-control mg-l-20" [disabled]="true" [(ngModel)]="user.displayName" placeholder="Tên khách hàng">
+            <input type="text" class="form-control mg-l-20" [disabled]="true" [(ngModel)]="user.topup" placeholder="Số dư">
+            <button (click)="onSave()" [disabled]="isSaving || !code" class="payment-bt">Thanh toán</button>
+        </div>
+        <div *ngIf="isOrderCanteen" class="payment flex flex-row">
+            <input id="barcode-input" type="text" class="form-control" debounce [delay]="1000" (func)="onSave()" placeholder="Scan barcode tại đây" [(ngModel)]="code">
+            <select class="form-control mg-l-20" [(ngModel)]="loaiThanhToan">
+                <option value="0">Hệ thống</option>
+                <option value="1">TM/CK</option>
+            </select>
+            <input type="text" class="form-control mg-l-20" [disabled]="true" [(ngModel)]="user.displayName" placeholder="Tên khách hàng">
+            <input type="text" class="form-control mg-l-20" [disabled]="true" [(ngModel)]="user.topup" placeholder="Số dư">
+
+        </div>
+    </div>
+</div>
+<div class="text-center container">
+    <div class="print"></div>
+</div>
+<div *ngIf="isLockScreen && isOrderCanteen" class="block-screen"></div>
+<div *ngIf="isLockScreen && isOrderCanteen" class="block-screen-content">
+    <h3>Quẹt thẻ xảy ra lỗi, vui lòng liên hệ quản lý, hoặc refresh lại website</h3>
+</div>

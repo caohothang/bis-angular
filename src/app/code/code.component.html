@@ -1,0 +1,151 @@
+<div class="innerHeading-wrap no-print">
+    <div class="container">
+        <h1 class="title text-center" *ngIf="languageId === 1">Hệ thống Check In</h1>
+        <h1 class="title text-center" *ngIf="languageId === 2">Check In System</h1>
+    </div>
+</div>
+
+<div class="no-print container-checkin">
+    <div class="container">
+        <!-- Live Server Time & Check-in Schedule Bar -->
+        <div class="server-status-card">
+            <div class="row align-items-center">
+                <!-- Clock section -->
+                <div class="col-12 col-md-5 col-lg-4 text-center text-md-left mb-3 mb-md-0 border-right-md">
+                    <div class="live-clock-badge">
+                        <span class="live-indicator-dot"></span>
+                        <span class="live-clock-tag">SERVER TIME (24H)</span>
+                    </div>
+                    <div class="live-clock-time">{{serverTimeDisplay}}</div>
+                    <div class="live-clock-date">
+                        <i class="far fa-calendar-alt mr-1"></i> {{serverDateDisplay}}
+                    </div>
+                </div>
+
+                <!-- Schedule & Session status section -->
+                <div class="col-12 col-md-7 col-lg-8">
+                    <!-- Current Session Indicator -->
+                    <div class="session-status-banner mb-3" [ngClass]="currentSession ? 'session-active' : 'session-closed'">
+                        <div class="session-status-left">
+                            <i class="fas fa-check-circle" *ngIf="currentSession"></i>
+                            <i class="fas fa-clock" *ngIf="!currentSession"></i>
+                            <span class="session-status-text" *ngIf="currentSession === 'breakfast'">
+                                Check-in is OPEN &bull; Breakfast Session
+                            </span>
+                            <span class="session-status-text" *ngIf="currentSession === 'lunch'">
+                                Check-in is OPEN &bull; Lunch Session
+                            </span>
+                            <span class="session-status-text" *ngIf="!currentSession">
+                                Check-in is currently CLOSED &bull; Please wait for next session
+                            </span>
+                        </div>
+                        <span class="session-pill" [ngClass]="currentSession ? 'pill-open' : 'pill-closed'">
+                            {{currentSession ? 'ACTIVE NOW' : 'WAITING'}}
+                        </span>
+                    </div>
+
+                    <!-- Allowed check-in time windows -->
+                    <div class="time-windows-grid">
+                        <div class="window-item" [class.window-highlight]="currentSession === 'breakfast'">
+                            <div class="window-icon breakfast-icon">
+                                <i class="fas fa-sun"></i>
+                            </div>
+                            <div class="window-info">
+                                <span class="window-name">Breakfast</span>
+                                <span class="window-time">
+                                    {{checkinConfig?.morningFrom || '08:00'}} - {{checkinConfig?.morningTo || '12:00'}}
+                                </span>
+                            </div>
+                            <span class="window-status-badge" *ngIf="currentSession === 'breakfast'">Active</span>
+                        </div>
+
+                        <div class="window-item" [class.window-highlight]="currentSession === 'lunch'">
+                            <div class="window-icon lunch-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="window-info">
+                                <span class="window-name">Lunch</span>
+                                <span class="window-time">
+                                    {{checkinConfig?.lunchFrom || '11:00'}} - {{checkinConfig?.lunchTo || '13:30'}}
+                                </span>
+                            </div>
+                            <span class="window-status-badge" *ngIf="currentSession === 'lunch'">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Card -->
+        <div class="scanner-card">
+            <div class="scanner-header text-center">
+                <div class="scanner-icon-wrap">
+                    <i class="fas fa-barcode"></i>
+                </div>
+                <h3 class="scanner-title">Scan Barcode / Card Code</h3>
+                <p class="scanner-subtitle">Scan student card or enter code manually to check in</p>
+            </div>
+
+            <!-- Error Notification Banner if scan fails -->
+            <div class="scan-error-alert" *ngIf="errorMessage">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span>{{errorMessage}}</span>
+            </div>
+
+            <div class="payment-inputs-row">
+                <div class="input-with-icon">
+                    <i class="fas fa-qrcode input-icon"></i>
+                    <input id="barcode-input" type="text" class="form-control checkin-input" debounce [delay]="500"
+                        (func)="onCheckCode()" placeholder="Scan barcode here (autofocus)..." [(ngModel)]="code">
+                </div>
+
+                <div class="input-with-icon">
+                    <i class="fas fa-keyboard input-icon"></i>
+                    <input id="barcode-input2" type="text" class="form-control checkin-input"
+                        (keyup.enter)="onCheckCode()" placeholder="Or type code and press Enter..." [(ngModel)]="code2">
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Check-ins List -->
+        <div class="recent-scans-section" *ngIf="items && items.length > 0">
+            <h4 class="recent-heading text-center">
+                <i class="fas fa-history mr-2"></i> Recent Check-ins ({{items.length}})
+            </h4>
+            <div class="code-used-grid">
+                <div class="checkin-item-card" *ngFor="let item of items">
+                    <div class="card-top-row">
+                        <h5 class="user-name">
+                            <i class="fas fa-user-graduate mr-2 text-warning"></i>
+                            {{item.user?.displayName || item.displayName}}
+                        </h5>
+                        <span class="used-badge">Use #{{item.used}}</span>
+                    </div>
+                    <div class="card-details">
+                        <p class="detail-line">
+                            <span class="detail-label">Class:</span>
+                            <span class="detail-value font-weight-bold">{{item.user?.className || item.className}}</span>
+                        </p>
+                        <p class="detail-line">
+                            <span class="detail-label">Meal:</span>
+                            <span class="detail-value text-primary font-weight-bold">{{item.item || item.food || 'No Item'}}</span>
+                        </p>
+                        <p class="detail-line">
+                            <span class="detail-label">Time:</span>
+                            <span class="detail-value text-muted">{{item.time}}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+    <div class="print"></div>
+</div>
+
+<div *ngIf="isLockScreen" class="block-screen"></div>
+<div *ngIf="isLockScreen" class="block-screen-content">
+    <h3>Payment error, please contact management or refresh page</h3>
+</div>

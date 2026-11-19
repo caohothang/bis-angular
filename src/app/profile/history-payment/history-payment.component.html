@@ -1,0 +1,323 @@
+<div class="innerHeading-wrap">
+    <div class="container">
+        <h1 *ngIf="languageId == 1">Lịch sử giao dịch</h1>
+        <h1 *ngIf="languageId == 2">Transaction History</h1>
+    </div>
+</div>
+
+<div class="main-profile payment-history-page">
+    <div class="container">
+        <!-- Hero Section: Smart Card Balance & Overview Stats -->
+        <div class="wallet-overview-section mb-4">
+            <div class="row">
+                <!-- Smart Student Wallet Card -->
+                <div class="col-12 col-lg-7 mb-3 mb-lg-0">
+                    <div class="smart-wallet-card">
+                        <div class="card-bg-glow"></div>
+                        <div class="card-top-row">
+                            <div class="card-chip-badge">
+                                <i class="fas fa-wallet mr-1"></i>
+                                <span>{{languageId == 1 ? 'THẺ HỌC SINH' : 'STUDENT CARD WALLET'}}</span>
+                            </div>
+                            <div class="contactless-icon">
+                                <i class="fas fa-wifi"></i>
+                            </div>
+                        </div>
+
+                        <div class="card-balance-block">
+                            <span class="balance-label">
+                                {{languageId == 1 ? 'Số dư khả dụng hiện tại' : 'Current Available Balance'}}
+                            </span>
+                            <div class="balance-value-row">
+                                <span class="balance-number">{{formatPrice(histories?.user?.topup)}}</span>
+                                <span class="balance-currency">VNĐ</span>
+                            </div>
+                        </div>
+
+                        <div class="card-bottom-row">
+                            <div class="holder-info">
+                                <span class="holder-label">{{languageId == 1 ? 'Chủ thẻ' : 'Card Holder'}}</span>
+                                <span class="holder-name">{{histories?.user?.displayName || 'Student'}}</span>
+                            </div>
+                            <div class="class-info" *ngIf="histories?.user?.className">
+                                <span class="holder-label">{{languageId == 1 ? 'Lớp' : 'Class'}}</span>
+                                <span class="class-name">{{histories?.user?.className}}</span>
+                            </div>
+                            <div class="card-id-info" *ngIf="histories?.user?.card_code || histories?.user?.code">
+                                <span class="holder-label">{{languageId == 1 ? 'Mã thẻ' : 'Card ID'}}</span>
+                                <span class="card-code-val">{{histories?.user?.card_code || histories?.user?.code}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stat Overview Boxes -->
+                <div class="col-12 col-lg-5">
+                    <div class="stat-boxes-column">
+                        <!-- Stat Box 1: Total Spent -->
+                        <div class="quick-stat-box box-spent">
+                            <div class="stat-icon-wrap icon-spent">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label">
+                                    {{languageId == 1 ? 'Tổng chi tiêu canteen' : 'Total Canteen Spent'}}
+                                </span>
+                                <div class="stat-amount amount-spent">
+                                    -{{formatPrice(getTotalSpent())}} <span class="stat-curr">VNĐ</span>
+                                </div>
+                                <span class="stat-count-sub">
+                                    {{histories?.orders?.length || 0}} {{languageId == 1 ? 'lần mua' : 'purchases'}}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Stat Box 2: Total Topup -->
+                        <div class="quick-stat-box box-topup">
+                            <div class="stat-icon-wrap icon-topup">
+                                <i class="fas fa-arrow-circle-down"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-label">
+                                    {{languageId == 1 ? 'Tổng tiền đã nạp' : 'Total Recharged'}}
+                                </span>
+                                <div class="stat-amount amount-topup">
+                                    +{{formatPrice(getTotalTopup())}} <span class="stat-curr">VNĐ</span>
+                                </div>
+                                <span class="stat-count-sub">
+                                    {{histories?.payments?.length || 0}} {{languageId == 1 ? 'lần nạp' : 'top-ups'}}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs & Search Controls -->
+        <div class="history-controls-card">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-7 mb-3 mb-md-0">
+                    <div class="tab-pill-group">
+                        <button class="btn tab-pill-btn" [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
+                            <i class="fas fa-receipt mr-2"></i>
+                            <span *ngIf="languageId == 1">Chi tiêu Canteen</span>
+                            <span *ngIf="languageId == 2">Canteen Purchases</span>
+                            <span class="count-pill">{{histories?.orders?.length || 0}}</span>
+                        </button>
+                        <button class="btn tab-pill-btn" [class.active]="activeTab === 'payments'" (click)="setActiveTab('payments')">
+                            <i class="fas fa-wallet mr-2"></i>
+                            <span *ngIf="languageId == 1">Lịch sử nạp tiền</span>
+                            <span *ngIf="languageId == 2">Wallet Top-ups</span>
+                            <span class="count-pill">{{histories?.payments?.length || 0}}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-5">
+                    <div class="search-input-wrap">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control search-input"
+                            [(ngModel)]="searchTerm"
+                            placeholder="{{languageId == 1 ? 'Tìm kiếm giao dịch...' : 'Search transactions...'}}">
+                        <button class="btn btn-clear-search" *ngIf="searchTerm" (click)="searchTerm = ''">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <mat-spinner [diameter]="40" class="spinner-margin" *ngIf="isLoading"></mat-spinner>
+
+        <!-- TAB 1: CANTEEN PURCHASES -->
+        <div class="tab-content-section" *ngIf="!isLoading && activeTab === 'orders'">
+            <!-- Empty state for orders -->
+            <div class="empty-state-box text-center" *ngIf="getFilteredOrders().length === 0">
+                <div class="empty-icon-wrap">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <h4 class="empty-title">
+                    {{languageId == 1 ? 'Chưa có giao dịch chi tiêu canteen' : 'No Canteen Purchases Found'}}
+                </h4>
+                <p class="empty-subtitle">
+                    {{searchTerm ? (languageId == 1 ? 'Không tìm thấy kết quả phù hợp với từ khóa' : 'No results matched your search term') : (languageId == 1 ? 'Các giao dịch thanh toán món ăn sẽ hiển thị tại đây' : 'Your meal and drink purchases will appear here')}}
+                </p>
+            </div>
+
+            <!-- DESKTOP TABLE: Purchases -->
+            <div class="desktop-history-card d-none d-lg-block" *ngIf="getFilteredOrders().length > 0">
+                <table class="table modern-payment-table">
+                    <thead>
+                        <tr>
+                            <th class="th-time">{{languageId == 1 ? 'Thời gian' : 'Date & Time'}}</th>
+                            <th class="th-bill">{{languageId == 1 ? 'Mã hóa đơn' : 'Receipt No.'}}</th>
+                            <th class="th-item">{{languageId == 1 ? 'Món ăn / Đồ uống' : 'Meal / Item'}}</th>
+                            <th class="th-amount text-right">{{languageId == 1 ? 'Số tiền' : 'Amount'}}</th>
+                            <th class="th-status text-center">{{languageId == 1 ? 'Trạng thái' : 'Status'}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let order of getFilteredOrders()">
+                            <td class="td-time">
+                                <div class="date-main">{{formatDateOnly(order.dateCreated)}}</div>
+                                <div class="time-sub text-muted">
+                                    <i class="far fa-clock mr-1"></i> {{formatTimeOnly(order.dateCreated)}}
+                                </div>
+                            </td>
+                            <td class="td-bill">
+                                <span class="bill-code-badge" *ngIf="order.maBill">
+                                    <i class="fas fa-barcode mr-1"></i> {{order.maBill}}
+                                </span>
+                                <span class="text-muted font-italic" *ngIf="!order.maBill">#{{order.id}}</span>
+                            </td>
+                            <td class="td-item">
+                                <div class="item-title-row">
+                                    <span class="item-name">{{order.title || order.item || 'Meal item'}}</span>
+                                    <span class="quantity-tag" *ngIf="order.quantity">x{{order.quantity}}</span>
+                                </div>
+                            </td>
+                            <td class="td-amount text-right">
+                                <span class="amount-spent-val">-{{formatPrice(order.total)}} VNĐ</span>
+                            </td>
+                            <td class="td-status text-center">
+                                <span class="badge-status badge-status-paid">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    {{languageId == 1 ? 'Đã thanh toán' : 'Paid'}}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- MOBILE CARDS: Purchases -->
+            <div class="mobile-history-feed d-block d-lg-none" *ngIf="getFilteredOrders().length > 0">
+                <div class="mobile-trans-card" *ngFor="let order of getFilteredOrders()">
+                    <div class="trans-top-row">
+                        <div class="trans-icon-box icon-purchase">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="trans-main-info">
+                            <div class="trans-title">{{order.title || order.item || 'Meal item'}}</div>
+                            <div class="trans-meta">
+                                <span class="trans-date">{{formatDate(order.dateCreated)}}</span>
+                                <span class="trans-bill" *ngIf="order.maBill">&bull; #{{order.maBill}}</span>
+                            </div>
+                        </div>
+                        <div class="trans-right-amount">
+                            <div class="amount-spent-val">-{{formatPrice(order.total)}} <small>VNĐ</small></div>
+                            <span class="badge-status badge-status-paid mt-1">
+                                <i class="fas fa-check-circle mr-1"></i> {{languageId == 1 ? 'Đã trừ thẻ' : 'Paid'}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: WALLET TOP-UPS -->
+        <div class="tab-content-section" *ngIf="!isLoading && activeTab === 'payments'">
+            <!-- Empty state for payments -->
+            <div class="empty-state-box text-center" *ngIf="getFilteredPayments().length === 0">
+                <div class="empty-icon-wrap">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h4 class="empty-title">
+                    {{languageId == 1 ? 'Chưa có lịch sử nạp tiền' : 'No Top-up History Found'}}
+                </h4>
+                <p class="empty-subtitle">
+                    {{searchTerm ? (languageId == 1 ? 'Không tìm thấy kết quả phù hợp với từ khóa' : 'No results matched your search term') : (languageId == 1 ? 'Các lần nạp tiền vào thẻ sẽ hiển thị tại đây' : 'Your card recharges and top-ups will appear here')}}
+                </p>
+            </div>
+
+            <!-- DESKTOP TABLE: Top-ups -->
+            <div class="desktop-history-card d-none d-lg-block" *ngIf="getFilteredPayments().length > 0">
+                <table class="table modern-payment-table">
+                    <thead>
+                        <tr>
+                            <th class="th-time">{{languageId == 1 ? 'Thời gian' : 'Date & Time'}}</th>
+                            <th class="th-method">{{languageId == 1 ? 'Phương thức nạp' : 'Payment Method'}}</th>
+                            <th class="th-desc">{{languageId == 1 ? 'Mô tả / Mã giao dịch' : 'Description / Transaction ID'}}</th>
+                            <th class="th-amount text-right">{{languageId == 1 ? 'Số tiền nạp' : 'Top-up Amount'}}</th>
+                            <th class="th-status text-center">{{languageId == 1 ? 'Trạng thái' : 'Status'}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let payment of getFilteredPayments()">
+                            <td class="td-time">
+                                <div class="date-main">{{formatDateOnly(payment.dateCreated)}}</div>
+                                <div class="time-sub text-muted">
+                                    <i class="far fa-clock mr-1"></i> {{formatTimeOnly(payment.dateCreated)}}
+                                </div>
+                            </td>
+                            <td class="td-method">
+                                <span class="method-badge method-zalopay" *ngIf="payment.topupType == 1">
+                                    <i class="fas fa-mobile-alt mr-1"></i> ZaloPay
+                                </span>
+                                <span class="method-badge method-counter" *ngIf="payment.topupType != 1">
+                                    <i class="fas fa-cash-register mr-1"></i>
+                                    {{languageId == 1 ? 'Quầy thu ngân' : 'Canteen Counter'}}
+                                </span>
+                            </td>
+                            <td class="td-desc">
+                                <span class="trans-id-text" *ngIf="payment.apptransid || payment.zptransid">
+                                    ID: {{payment.apptransid || payment.zptransid}}
+                                </span>
+                                <span class="desc-text" *ngIf="payment.message || payment.description">
+                                    {{payment.message || payment.description}}
+                                </span>
+                                <span class="text-muted font-italic" *ngIf="!payment.apptransid && !payment.zptransid && !payment.message && !payment.description">
+                                    {{languageId == 1 ? 'Nạp tiền vào thẻ' : 'Card Top-up'}}
+                                </span>
+                            </td>
+                            <td class="td-amount text-right">
+                                <span class="amount-topup-val">+{{formatPrice(payment.topup)}} VNĐ</span>
+                            </td>
+                            <td class="td-status text-center">
+                                <span class="badge-status badge-status-completed" *ngIf="payment.status == 1">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    {{languageId == 1 ? 'Thành công' : 'Completed'}}
+                                </span>
+                                <span class="badge-status badge-status-pending" *ngIf="payment.status != 1">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    {{languageId == 1 ? 'Đang xử lý' : 'Pending'}}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- MOBILE CARDS: Top-ups -->
+            <div class="mobile-history-feed d-block d-lg-none" *ngIf="getFilteredPayments().length > 0">
+                <div class="mobile-trans-card" *ngFor="let payment of getFilteredPayments()">
+                    <div class="trans-top-row">
+                        <div class="trans-icon-box icon-topup">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="trans-main-info">
+                            <div class="trans-title">
+                                <span *ngIf="payment.topupType == 1">ZaloPay Top-up</span>
+                                <span *ngIf="payment.topupType != 1">{{languageId == 1 ? 'Nạp tại quầy' : 'Counter Top-up'}}</span>
+                            </div>
+                            <div class="trans-meta">
+                                <span class="trans-date">{{formatDate(payment.dateCreated)}}</span>
+                                <span class="trans-bill" *ngIf="payment.apptransid">&bull; {{payment.apptransid}}</span>
+                            </div>
+                        </div>
+                        <div class="trans-right-amount">
+                            <div class="amount-topup-val">+{{formatPrice(payment.topup)}} <small>VNĐ</small></div>
+                            <span class="badge-status badge-status-completed mt-1" *ngIf="payment.status == 1">
+                                <i class="fas fa-check-circle mr-1"></i> {{languageId == 1 ? 'Thành công' : 'Success'}}
+                            </span>
+                            <span class="badge-status badge-status-pending mt-1" *ngIf="payment.status != 1">
+                                <i class="fas fa-clock mr-1"></i> {{languageId == 1 ? 'Đang xử lý' : 'Pending'}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
