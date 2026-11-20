@@ -366,6 +366,10 @@ export class MenuComponent implements OnInit {
                 }
                 this.filterWeekListByConfig();
                 this.weekSelected = this.weekList[this.weekIndex] || this.weekList[0];
+                if (this.weekSelected) {
+                    this.weekSelected.itemSelected = this.weekSelected.itemSelected || [];
+                }
+                this.autoSelectSingleSnacks();
             }
            
         } else {
@@ -551,21 +555,23 @@ export class MenuComponent implements OnInit {
             self.isCompletedWeek = true;
             return;
         }
+        let scrolled = false;
         itemPerDays.each(function(index) {
-            if (!$(this).find('.card_btn').hasClass('active')) {
-                $('html, body').animate({ scrollTop: $('.item-per-day').eq(index).offset().top - 50 }, 1000);
-                if (this.languageId === 1) {
-                    self.alertService.notify('error', 'Bạn cần chọn món trước khi sang tuần khác');
+            if (!$(this).find('.card_btn').hasClass('active') && !scrolled) {
+                $('html, body').animate({ scrollTop: $(this).offset().top - 80 }, 800);
+                if (self.languageId === 1) {
+                    self.alertService.notify('error', 'Vui lòng chọn món ăn trước khi tiếp tục');
                 } else {
-                    self.alertService.notify('error', 'Please select food before go to next week');
+                    self.alertService.notify('error', 'Please select food before proceeding');
                 }
-
+                scrolled = true;
                 self.isCompletedWeek = false;
                 return false;
-            } else {
-                self.isCompletedWeek = true;
             }
         });
+        if (!scrolled) {
+            self.isCompletedWeek = true;
+        }
     }
 
     showOrderCompleteModal() {
@@ -610,46 +616,52 @@ export class MenuComponent implements OnInit {
     }
 
     selectSnack(item, items, day, type) {
-        const exist = _.find(this.weekSelected.itemSelected, (i) => {
+        if (!this.weekSelected) {
+            return;
+        }
+        if (!this.weekSelected.itemSelected) {
+            this.weekSelected.itemSelected = [];
+        }
+        let exist = this.weekSelected.itemSelected.find((i: any) => {
             return i.code === day.code && day.date === i.date;
         });
         if (!exist) {
-            if (this.languageId === 1) {
-                this.alertService.notify('error', 'Bạn cần chọn món chính trước khi chọn món phụ');
-            } else {
-                this.alertService.notify('error', 'Please select main menu frist.');
-            }
-
-            return;
+            this.weekSelected.itemSelected.push(day);
+            exist = day;
         }
-        _.each(items, (sitem) => {
+
+        items.forEach((sitem: any) => {
             sitem.selected = false;
         });
         item.selected = true;
-        if (type == 'snack_breakfast') {
+
+        if (type === 'snack_breakfast') {
             day.snack_breakfast = item;
+            day.breakfast_snackId = item.id;
             day.snack_breakfast_items = items;
+            exist.snack_breakfast = item;
+            exist.breakfast_snackId = item.id;
         } else {
             day.lunch_snack = item;
+            day.lunch_snackId = item.id;
             day.lunch_snack_items = items;
+            exist.lunch_snack = item;
+            exist.lunch_snackId = item.id;
         }
+
         this.weekSelected.itemSelected = _.sortBy(this.weekSelected.itemSelected, 'date');
-        _.each(this.weekSelected.itemSelected, (mitem, index) => {
-            if (mitem.code === day.code) {
-                this.weekSelected.itemSelected[index] = day;
-            }
+        const existsWeek: any = this.weekList.find((weekItem: any) => {
+            return weekItem.weekNumber == this.weekNumber;
         });
+        if (existsWeek) {
+            existsWeek.itemSelected = this.weekSelected.itemSelected;
+        }
+
         this.weekSelected.user = this.user;
         this.weekSelected.items = this.weeks;
         this.isSaving = true;
         this.fetchService.saveOrder(this.weekSelected).subscribe((res) => {
             this.isSaving = false;
-            let successText = '';
-            if (this.languageId === 1) {
-                successText = 'MENU THÁNG ĐÃ CHỌN XONG';
-            } else {
-                successText = 'Pre-Order Completed';
-            }
             if ((this.isEndDate || this.isNextWeekDisabled()) && this.checkCompleteWeek()) {
                 this.showOrderCompleteModal();
             } else {
@@ -659,6 +671,9 @@ export class MenuComponent implements OnInit {
                     this.alertService.notify('success', 'Your select saved into system');
                 }
             }
+        }, err => {
+            this.isSaving = false;
+            this.alertService.notify('error', 'Có lỗi xảy ra khi lưu món');
         });
     }
 
@@ -671,16 +686,17 @@ export class MenuComponent implements OnInit {
             return itemSelect.code === day.code && day.date === itemSelect.date;
         });
         day[type] = item;
-        if (type === 'breakfast' && day.snack_breakfast_items.length == 1) {
+        if (type === 'breakfast' && day.snack_breakfast_items && day.snack_breakfast_items.length == 1) {
             day.snack_breakfast = day.snack_breakfast_items[0];
+            day.breakfast_snackId = day.snack_breakfast_items[0].id;
             day.snack_breakfast_items[0].selected = true;
         }
 
-        if (type === 'lunch' && day.lunch_snack_items.length == 1) {
+        if (type === 'lunch' && day.lunch_snack_items && day.lunch_snack_items.length == 1) {
             day.lunch_snack = day.lunch_snack_items[0];
+            day.lunch_snackId = day.lunch_snack_items[0].id;
             day.lunch_snack_items[0].selected = true;
         }
-
 
         if (!exists) {
             this.weekSelected.itemSelected.push(day);
@@ -703,12 +719,6 @@ export class MenuComponent implements OnInit {
         this.weekSelected.user = this.user;
         this.fetchService.saveOrder(this.weekSelected).subscribe(res => {
             this.isSaving = false;
-            let successText = '';
-            if (this.languageId === 1) {
-                successText = 'MENU THÁNG ĐÃ CHỌN XONG';
-            } else {
-                successText = 'Pre-Order Completed';
-            }
             if ((this.isEndDate || this.isNextWeekDisabled()) && this.checkCompleteWeek()) {
                 this.showOrderCompleteModal();
             } else {
@@ -724,6 +734,110 @@ export class MenuComponent implements OnInit {
         });
     }
 
+    autoSelectSingleSnacks() {
+        if (!this.weeks || this.weeks.length === 0 || !this.weekSelected) {
+            return;
+        }
+        if (!this.weekSelected.itemSelected) {
+            this.weekSelected.itemSelected = [];
+        }
+        let hasNewSelection = false;
+        this.weeks.forEach((day: any) => {
+            // Auto-select morning snack if only 1 item
+            if (this.user?.breakfast && day.snack_breakfast_items && day.snack_breakfast_items.length === 1) {
+                const singleSnack = day.snack_breakfast_items[0];
+                if (!singleSnack.selected) {
+                    singleSnack.selected = true;
+                    day.snack_breakfast = singleSnack;
+                    day.breakfast_snackId = singleSnack.id;
+                    hasNewSelection = true;
+                } else if (!day.snack_breakfast) {
+                    day.snack_breakfast = singleSnack;
+                    day.breakfast_snackId = singleSnack.id;
+                }
+            }
+
+            // Auto-select afternoon snack if only 1 item
+            if (this.user?.lunch && day.lunch_snack_items && day.lunch_snack_items.length === 1) {
+                const singleSnack = day.lunch_snack_items[0];
+                if (!singleSnack.selected) {
+                    singleSnack.selected = true;
+                    day.lunch_snack = singleSnack;
+                    day.lunch_snackId = singleSnack.id;
+                    hasNewSelection = true;
+                } else if (!day.lunch_snack) {
+                    day.lunch_snack = singleSnack;
+                    day.lunch_snackId = singleSnack.id;
+                }
+            }
+
+            // Sync with this.weekSelected.itemSelected
+            if (day.breakfast || day.lunch || day.snack_breakfast || day.lunch_snack) {
+                let exist = this.weekSelected.itemSelected.find((i: any) => i.code === day.code && day.date === i.date);
+                if (!exist) {
+                    this.weekSelected.itemSelected.push(day);
+                } else {
+                    if (day.snack_breakfast && !exist.snack_breakfast) {
+                        exist.snack_breakfast = day.snack_breakfast;
+                        exist.breakfast_snackId = day.breakfast_snackId;
+                    }
+                    if (day.lunch_snack && !exist.lunch_snack) {
+                        exist.lunch_snack = day.lunch_snack;
+                        exist.lunch_snackId = day.lunch_snackId;
+                    }
+                }
+            }
+        });
+
+        if (this.weekSelected.itemSelected && this.weekSelected.itemSelected.length > 0) {
+            this.weekSelected.itemSelected = _.sortBy(this.weekSelected.itemSelected, 'date');
+            const existsWeek: any = this.weekList.find((w: any) => w.weekNumber == this.weekNumber);
+            if (existsWeek) {
+                existsWeek.itemSelected = this.weekSelected.itemSelected;
+            }
+        }
+
+        if (hasNewSelection) {
+            this.weekSelected.items = this.weeks;
+            this.weekSelected.user = this.user;
+            this.fetchService.saveOrder(this.weekSelected).subscribe();
+        }
+    }
+
+    isWeekFullySelected(): boolean {
+        if (!this.weeks || this.weeks.length === 0) {
+            return false;
+        }
+        let totalSections = 0;
+        for (const day of this.weeks) {
+            if (this.user?.breakfast && day.breakfast_items && day.breakfast_items.length > 0) {
+                totalSections++;
+                if (!day.breakfast_items.some((i: any) => i.selected)) {
+                    return false;
+                }
+            }
+            if (this.user?.breakfast && day.snack_breakfast_items && day.snack_breakfast_items.length > 0) {
+                totalSections++;
+                if (!day.snack_breakfast_items.some((i: any) => i.selected)) {
+                    return false;
+                }
+            }
+            if (this.user?.lunch && day.lunch_items && day.lunch_items.length > 0) {
+                totalSections++;
+                if (!day.lunch_items.some((i: any) => i.selected)) {
+                    return false;
+                }
+            }
+            if (this.user?.lunch && day.lunch_snack_items && day.lunch_snack_items.length > 0) {
+                totalSections++;
+                if (!day.lunch_snack_items.some((i: any) => i.selected)) {
+                    return false;
+                }
+            }
+        }
+        return totalSections > 0;
+    }
+
     checkItem(day, select = 'breakfast') {
         if (select === 'breakfast') {
             return _.find(day.breakfast_items, (item) => {
@@ -737,17 +851,7 @@ export class MenuComponent implements OnInit {
     }
 
     checkCompleteWeek() {
-        const itemPerDays = $('.item-per-day');
-        if (itemPerDays.length === 0) {
-            return false;
-        }
-        let completed = true;
-        itemPerDays.each(function() {
-            if (!$(this).find('.card_btn').hasClass('active')) {
-                completed = false;
-            }
-        });
-        return completed;
+        return this.isWeekFullySelected();
     }
 
     getMaxConfigWeek(): { week: number, year: number } | null {
@@ -817,8 +921,8 @@ export class MenuComponent implements OnInit {
 
     completeLastWeekOrder() {
         if (this.isSaving) return;
-        this.scrollToItem();
-        if (!this.isCompletedWeek) {
+        if (!this.isWeekFullySelected()) {
+            this.scrollToItem();
             return;
         }
         if (this.weekSelected) {

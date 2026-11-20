@@ -477,14 +477,24 @@
                                                 class="fas fa-chevron-right ml-2"></i></span>
                                     </button>
 
-                                    <!-- State 2: At final week of config & not done yet -> Complete Pre-Order -->
+                                    <!-- State 2: At final week of config & not done yet -> Complete Pre-Order (only when all meals selected) -->
                                     <button mat-raised-button [disabled]="isSaving"
                                         class="btn-order-cta btn-complete-cta"
-                                        *ngIf="isNextWeekDisabled() && !isDoneOrder" (click)="completeLastWeekOrder();">
+                                        *ngIf="isNextWeekDisabled() && !isDoneOrder && isWeekFullySelected()" (click)="completeLastWeekOrder();">
                                         <i class="fas fa-check-circle mr-2"></i>
                                         <span *ngIf="languageId == 1">Hoàn thành đặt món</span>
                                         <span *ngIf="languageId == 2">Complete Pre-Order</span>
                                     </button>
+
+                                    <!-- Final week hint when meals are not fully selected yet -->
+                                    <div class="final-week-hint text-center text-muted py-2"
+                                        *ngIf="isNextWeekDisabled() && !isDoneOrder && !isWeekFullySelected()">
+                                        <small>
+                                            <i class="fas fa-info-circle mr-1 text-primary"></i>
+                                            <span *ngIf="languageId == 1">Vui lòng chọn đầy đủ các món để hoàn thành đặt món.</span>
+                                            <span *ngIf="languageId == 2">Please select all meals to complete pre-order.</span>
+                                        </small>
+                                    </div>
 
                                     <!-- State 3: Done order / already completed -> View Order History -->
                                     <button mat-raised-button [disabled]="isSaving" class="btn-order-cta btn-done-cta"
